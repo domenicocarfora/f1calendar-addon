@@ -1,0 +1,21 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Formula 1 Calendar",
+        "description": "Configura l'integrazione Formula 1 Calendar",
+        "data": {
+          "scan_interval": "Intervallo di aggiornamento (secondi)"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Impossibile connettersi all'API",
+      "unknown": "Errore sconosciuto"
+    },
+    "abort": {
+      "already_configured": "L'integrazione è già configurata"
+    }
+  }
+}
+

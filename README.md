@@ -1,10 +1,10 @@
-# Formula 1 Addon per Home Assistant
+# Formula 1 Calendar Integration per Home Assistant
 
-Un addon per integrare informazioni sulle gare di Formula 1 in Home Assistant.
+Un'integrazione per integrare informazioni sulle gare di Formula 1 in Home Assistant.
 
 ## Descrizione
 
-Questo addon recupera i dati delle gare di Formula 1 della stagione corrente dall'API Ergast e crea tre sensori in Home Assistant:
+Questa integrazione recupera i dati delle gare di Formula 1 della stagione corrente dall'API Ergast e crea tre sensori in Home Assistant:
 - **Gara precedente** (`sensor.f1_previous_race`)
 - **Gara attuale** (`sensor.f1_current_race`)
 - **Gara successiva** (`sensor.f1_next_race`)
@@ -20,37 +20,48 @@ Ogni sensore contiene informazioni complete sulla gara, incluse:
 
 ## Installazione
 
-1. Aggiungi questo repository al tuo Home Assistant
-2. Vai in **Supervisor** > **Add-on Store** > **Repository**
-3. Aggiungi: `https://github.com/domenicocarfora/f1calendar-addon`
-4. Installa l'addon "Formula 1 Addon"
-5. Configura l'addon (vedi sezione Configurazione)
-6. Avvia l'addon
+### Metodo 1: HACS (Consigliato)
+
+1. Assicurati che [HACS](https://hacs.xyz/) sia installato
+2. Vai su **HACS** > **Integrations**
+3. Clicca sui tre puntini in alto a destra e seleziona **Custom repositories**
+4. Aggiungi il repository:
+   - Repository: `https://github.com/domenicocarfora/f1calendar-addon`
+   - Category: **Integration**
+5. Cerca "Formula 1 Calendar" e installalo
+6. Riavvia Home Assistant
+
+### Metodo 2: Manuale
+
+1. Scarica o clona questo repository
+2. Copia la cartella `custom_components/f1calendar` nella directory `custom_components` della tua installazione Home Assistant
+   - Se non esiste, crea la cartella `custom_components` nella root della configurazione HA
+3. Riavvia Home Assistant
+4. Vai su **Impostazioni** > **Dispositivi e servizi** > **Aggiungi integrazione**
+5. Cerca "Formula 1 Calendar" e configurala
 
 ## Configurazione
 
-### Opzioni disponibili
+Dopo l'installazione:
 
-- `log_level` (string, richiesto): Livello di log. Valori possibili:
-  - `fatal`
-  - `error`
-  - `warn`
-  - `info` (default)
-  - `debug`
-  - `trace`
+1. Vai su **Impostazioni** > **Dispositivi e servizi**
+2. Clicca su **Aggiungi integrazione**
+3. Cerca "Formula 1 Calendar"
+4. Durante la configurazione puoi impostare:
+   - **Intervallo di aggiornamento**: da 300 secondi (5 minuti) a 86400 secondi (24 ore). Default: 3600 secondi (1 ora)
 
-- `update_interval` (integer, richiesto): Intervallo di aggiornamento in secondi. Minimo 300 (5 minuti), massimo 86400 (24 ore). Default: 3600 (1 ora)
+### Configurazione via YAML (Opzionale)
 
-### Esempio di configurazione
+Puoi anche aggiungere l'integrazione tramite `configuration.yaml`:
 
 ```yaml
-log_level: info
-update_interval: 3600
+f1calendar:
+  scan_interval: 3600  # Opzionale, in secondi
 ```
 
 ## Sensori creati
 
-Dopo l'avvio, l'addon creerà automaticamente i seguenti sensori:
+Dopo la configurazione, l'integrazione creerà automaticamente i seguenti sensori:
 
 ### `sensor.f1_previous_race`
 Contiene informazioni sulla gara precedente.
@@ -112,11 +123,15 @@ automation:
           message: "Qualifiche F1 stanno per iniziare!"
 ```
 
+## Requisiti
+
+- Home Assistant 2023.1.0 o superiore
+- Connessione internet (per accedere all'API Ergast)
+
 ## Supporto
 
-Per problemi e richieste, apri una issue su GitHub.
+Per problemi e richieste, apri una issue su [GitHub](https://github.com/domenicocarfora/f1calendar-addon/issues).
 
 ## Licenza
 
 MIT License
-

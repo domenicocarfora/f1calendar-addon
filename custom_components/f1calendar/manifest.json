@@ -1,0 +1,14 @@
+{
+  "domain": "f1calendar",
+  "name": "Formula 1 Calendar",
+  "codeowners": ["@domenicocarfora"],
+  "config_flow": true,
+  "dependencies": [],
+  "documentation": "https://github.com/domenicocarfora/f1calendar-addon",
+  "integration_type": "hub",
+  "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/domenicocarfora/f1calendar-addon/issues",
+  "requirements": ["requests>=2.31.0"],
+  "version": "1.0.0"
+}
+
