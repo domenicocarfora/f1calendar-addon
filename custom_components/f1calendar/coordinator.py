@@ -52,8 +52,11 @@ class F1CalendarCoordinator(DataUpdateCoordinator):
     async def _async_update_data(self) -> dict:
         """Fetch data from API."""
         try:
-            return await self.hass.async_add_executor_job(self._fetch_data)
+            data = await self.hass.async_add_executor_job(self._fetch_data)
+            _LOGGER.debug(f"Fetched F1 data: previous={bool(data.get('previous_race'))}, current={bool(data.get('current_race'))}, next={bool(data.get('next_race'))}")
+            return data
         except Exception as err:
+            _LOGGER.error(f"Error communicating with API: {err}", exc_info=True)
             raise UpdateFailed(f"Error communicating with API: {err}") from err
 
     def _fetch_data(self) -> dict:

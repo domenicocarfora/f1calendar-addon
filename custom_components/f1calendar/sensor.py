@@ -39,11 +39,17 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up Formula 1 Calendar sensors from a config entry."""
+    import logging
+    _LOGGER = logging.getLogger(__name__)
+    
     coordinator: F1CalendarCoordinator = hass.data[DOMAIN][entry.entry_id]
 
-    async_add_entities(
+    entities = [
         F1CalendarSensor(coordinator, description) for description in SENSOR_TYPES
-    )
+    ]
+    
+    _LOGGER.info(f"Creating {len(entities)} F1 Calendar sensors")
+    async_add_entities(entities, update_before_add=True)
 
 
 class F1CalendarSensor(CoordinatorEntity[F1CalendarCoordinator], SensorEntity):
@@ -58,10 +64,15 @@ class F1CalendarSensor(CoordinatorEntity[F1CalendarCoordinator], SensorEntity):
         super().__init__(coordinator)
         self.entity_description = description
         self._attr_unique_id = f"{coordinator.entry.entry_id}_{description.key}"
+        self._attr_name = description.name
+        self._attr_has_entity_name = True
 
     @property
     def native_value(self) -> StateType:
         """Return the state of the sensor."""
+        if not self.coordinator.data:
+            return "Unavailable"
+        
         race_data = self.coordinator.data.get(self.entity_description.key)
         if race_data:
             return race_data.get("raceName", "Unknown")

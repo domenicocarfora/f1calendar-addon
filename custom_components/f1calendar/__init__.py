@@ -17,13 +17,18 @@ PLATFORMS: list[Platform] = [Platform.SENSOR]
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Formula 1 Calendar from a config entry."""
+    _LOGGER.info("Setting up Formula 1 Calendar integration")
+    
     coordinator = F1CalendarCoordinator(hass, entry)
-    await coordinator.async_config_entry_first_refresh()
-
+    
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN][entry.entry_id] = coordinator
 
+    await coordinator.async_config_entry_first_refresh()
+    _LOGGER.info("Coordinator refreshed, setting up platforms")
+
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+    _LOGGER.info("Platforms set up successfully")
 
     entry.async_on_unload(entry.add_update_listener(async_update_options))
 
