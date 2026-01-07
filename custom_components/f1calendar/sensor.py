@@ -63,9 +63,14 @@ class F1CalendarSensor(CoordinatorEntity[F1CalendarCoordinator], SensorEntity):
         """Initialize the sensor."""
         super().__init__(coordinator)
         self.entity_description = description
-        self._attr_unique_id = f"{coordinator.entry.entry_id}_{description.key}"
+        self._attr_unique_id = f"{DOMAIN}_{description.key}"
         self._attr_name = description.name
-        self._attr_has_entity_name = True
+        self._attr_device_info = {
+            "identifiers": {(DOMAIN, coordinator.entry.entry_id)},
+            "name": "Formula 1 Calendar",
+            "manufacturer": "Ergast API",
+            "model": "F1 Calendar",
+        }
 
     @property
     def native_value(self) -> StateType:
