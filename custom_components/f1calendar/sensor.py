@@ -42,14 +42,18 @@ async def async_setup_entry(
     import logging
     _LOGGER = logging.getLogger(__name__)
     
+    if DOMAIN not in hass.data or entry.entry_id not in hass.data[DOMAIN]:
+        _LOGGER.error("Coordinator not found in hass.data")
+        return
+        
     coordinator: F1CalendarCoordinator = hass.data[DOMAIN][entry.entry_id]
 
     entities = [
         F1CalendarSensor(coordinator, description) for description in SENSOR_TYPES
     ]
     
-    _LOGGER.info(f"Creating {len(entities)} F1 Calendar sensors")
-    async_add_entities(entities, update_before_add=True)
+    _LOGGER.info(f"Creating {len(entities)} F1 Calendar sensors: {[e.entity_description.key for e in entities]}")
+    async_add_entities(entities, update_before_add=False)
 
 
 class F1CalendarSensor(CoordinatorEntity[F1CalendarCoordinator], SensorEntity):
@@ -63,14 +67,9 @@ class F1CalendarSensor(CoordinatorEntity[F1CalendarCoordinator], SensorEntity):
         """Initialize the sensor."""
         super().__init__(coordinator)
         self.entity_description = description
-        self._attr_unique_id = f"{DOMAIN}_{description.key}"
+        self._attr_unique_id = f"{coordinator.entry.entry_id}_{description.key}"
         self._attr_name = description.name
-        self._attr_device_info = {
-            "identifiers": {(DOMAIN, coordinator.entry.entry_id)},
-            "name": "Formula 1 Calendar",
-            "manufacturer": "Ergast API",
-            "model": "F1 Calendar",
-        }
+        self._attr_has_entity_name = False
 
     @property
     def native_value(self) -> StateType:
@@ -86,6 +85,9 @@ class F1CalendarSensor(CoordinatorEntity[F1CalendarCoordinator], SensorEntity):
     @property
     def extra_state_attributes(self) -> dict:
         """Return the state attributes."""
+        if not self.coordinator.data:
+            return {}
+            
         race_data = self.coordinator.data.get(self.entity_description.key)
         if not race_data:
             return {}
