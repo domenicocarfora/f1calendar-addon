@@ -3,15 +3,15 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime, timedelta, timezone
-from typing import TYPE_CHECKING, Optional, Tuple
+from typing import TYPE_CHECKING, Any, Optional, Tuple
 
 import requests
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+from homeassistant.const import CONF_SCAN_INTERVAL
 
 from .const import API_URL, DEFAULT_UPDATE_INTERVAL, DOMAIN
-from homeassistant.const import CONF_SCAN_INTERVAL
 
 if TYPE_CHECKING:
     from .sensor import F1CalendarSensor
@@ -30,7 +30,7 @@ except ImportError:
         ROME_TZ = None
 
 
-class F1CalendarCoordinator(DataUpdateCoordinator):
+class F1CalendarCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     """Class to manage fetching Formula 1 data."""
 
     def __init__(
@@ -53,11 +53,19 @@ class F1CalendarCoordinator(DataUpdateCoordinator):
         """Fetch data from API."""
         try:
             data = await self.hass.async_add_executor_job(self._fetch_data)
-            _LOGGER.debug(f"Fetched F1 data: previous={bool(data.get('previous_race'))}, current={bool(data.get('current_race'))}, next={bool(data.get('next_race'))}")
+            _LOGGER.debug(
+                "Fetched F1 data: previous=%s, current=%s, next=%s",
+                bool(data.get("previous_race")),
+                bool(data.get("current_race")),
+                bool(data.get("next_race")),
+            )
             return data
-        except Exception as err:
-            _LOGGER.error(f"Error communicating with API: {err}", exc_info=True)
+        except requests.RequestException as err:
+            _LOGGER.error("Error communicating with API: %s", err)
             raise UpdateFailed(f"Error communicating with API: {err}") from err
+        except Exception as err:
+            _LOGGER.exception("Unexpected error fetching F1 data")
+            raise UpdateFailed(f"Unexpected error: {err}") from err
 
     def _fetch_data(self) -> dict:
         """Fetch data from the API."""

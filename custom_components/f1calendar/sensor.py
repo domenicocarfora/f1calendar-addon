@@ -1,18 +1,20 @@
 """Sensor platform for Formula 1 Calendar."""
 from __future__ import annotations
 
-from datetime import datetime, timezone
+import logging
 from typing import Optional
 
 from homeassistant.components.sensor import SensorEntity, SensorEntityDescription
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.helpers.typing import StateType
 
 from .const import DOMAIN
 from .coordinator import F1CalendarCoordinator
+from .device import F1CalendarEntity
+
+_LOGGER = logging.getLogger(__name__)
 
 SENSOR_TYPES: tuple[SensorEntityDescription, ...] = (
     SensorEntityDescription(
@@ -39,9 +41,6 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up Formula 1 Calendar sensors from a config entry."""
-    import logging
-    _LOGGER = logging.getLogger(__name__)
-    
     if DOMAIN not in hass.data or entry.entry_id not in hass.data[DOMAIN]:
         _LOGGER.error("Coordinator not found in hass.data")
         return
@@ -52,11 +51,15 @@ async def async_setup_entry(
         F1CalendarSensor(coordinator, description) for description in SENSOR_TYPES
     ]
     
-    _LOGGER.info(f"Creating {len(entities)} F1 Calendar sensors: {[e.entity_description.key for e in entities]}")
+    _LOGGER.debug(
+        "Creating %d F1 Calendar sensors: %s",
+        len(entities),
+        [e.entity_description.key for e in entities],
+    )
     async_add_entities(entities, update_before_add=False)
 
 
-class F1CalendarSensor(CoordinatorEntity[F1CalendarCoordinator], SensorEntity):
+class F1CalendarSensor(F1CalendarEntity, SensorEntity):
     """Representation of a Formula 1 Calendar sensor."""
 
     def __init__(
@@ -68,19 +71,19 @@ class F1CalendarSensor(CoordinatorEntity[F1CalendarCoordinator], SensorEntity):
         super().__init__(coordinator)
         self.entity_description = description
         self._attr_unique_id = f"{coordinator.entry.entry_id}_{description.key}"
-        self._attr_name = description.name
-        self._attr_has_entity_name = False
+        self._attr_has_entity_name = True
 
     @property
     def native_value(self) -> StateType:
         """Return the state of the sensor."""
         if not self.coordinator.data:
-            return "Unavailable"
+            return None
         
         race_data = self.coordinator.data.get(self.entity_description.key)
-        if race_data:
-            return race_data.get("raceName", "Unknown")
-        return "No data"
+        if not race_data:
+            return None
+            
+        return race_data.get("raceName", "Unknown")
 
     @property
     def extra_state_attributes(self) -> dict:
